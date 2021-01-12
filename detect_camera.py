@@ -30,9 +30,10 @@ def main():
         _, input_width, input_height, _ = interpreter.get_input_details()[0]['shape']
         resized_image = image.convert('RGB').resize((input_width, input_height), Image.ANTIALIAS)
 
-        resized_image.save('resized_img.jpg')
-
         results = detect_object(interpreter, resized_image, 0.4)
+
+        for result in results:
+            print(f"{labels[result['class_id']]} : {result['score']}")
 
         annotate_objects(image, results, labels, 'byCamera.jpg')
 
