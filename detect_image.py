@@ -50,7 +50,7 @@ def detect_object(interpreter, image, threshold):
     return results
 
 
-def annotate_objects(image, results, labels):
+def annotate_objects(image, results, labels, filename='sample.jpg'):
     draw = ImageDraw.Draw(image)
     size = image.size
 
@@ -63,9 +63,9 @@ def annotate_objects(image, results, labels):
         ymax = int(ymax * size[1])
 
         draw.rectangle([xmin, ymin, xmax, ymax])
-        draw.text([xmin, ymin], f"{result['score']}")
+        draw.text([xmin, ymin], f"{result['score']}: {labels[result['class_id']]}")
 
-    image.save('with_box.jpg')
+    image.save(filename)
     
 
 def main():
