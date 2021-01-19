@@ -1,48 +1,90 @@
 
 from tflite_runtime.interpreter import Interpreter
 
-from time import sleep
+from time import sleep, time
 from io import BytesIO
 from picamera import PiCamera
 from PIL import Image
+
+import json
 
 from detect_image import detect_object, load_labels, annotate_objects
 
 DIR = 'annotated_images'
 
-def main():
+def output(results, labels):
+    print("--------")
     
-    labels = load_labels('/tmp/coco_labels.txt')
+    for result in results:
+        print(f"{labels[result['class_id']]} : {result['score']}")
 
-    interpreter = Interpreter('/tmp/detect.tflite')
+def count_of(target, results, labels):
+    count = 0
+    for result in results:
+        if labels[result['class_id']] == target:
+            count += 1
+
+    return count
+
+def main():
+    # ラベルを読み込む
+    labels = load_labels('model/coco_labels.txt')
+
+    # モデルを読み込む
+    interpreter = Interpreter('model/detect.tflite')
     interpreter.allocate_tensors()
 
+    # カメラを接続する
     with PiCamera() as camera:
 
         camera.resolution = (1024, 768)
         camera.start_preview()
 
-        for i in range(5):
-            sleep(5)
+        try:
+            i = 0
+            while True:
             
-            stream = BytesIO()
-            camera.capture(stream, format='jpeg')
+                sleep(10)
+                
+                # 画像データの格納場所を用意する
+                stream = BytesIO()
 
-            stream.seek(0)
+                start = time()
+                
+                # 撮影する
+                camera.capture(stream, format='jpeg')
 
-            with Image.open(stream) as image:
-                _, input_width, input_height, _ = interpreter.get_input_details()[0]['shape']
-                resized_image = image.convert('RGB').resize((input_width, input_height), Image.ANTIALIAS)
+                stream.seek(0)
 
-                results = detect_object(interpreter, resized_image, 0.4)
+                # 画像として読み込む
+                with Image.open(stream) as image:
+                    _, input_width, input_height, _ = interpreter.get_input_details()[0]['shape'] # 入力サイズを取得する
+                    resized_image = image.convert('RGB').resize((input_width, input_height), Image.ANTIALIAS) # 画像を加工する
 
-                print(f"{i}  --------")
-                for result in results:
-                    print(f"{labels[result['class_id']]} : {result['score']}")
+                    # 推論を実行する
+                    results = detect_object(interpreter, resized_image, 0.4)
+
+                    # 結果を出力する
+                    output(results, labels)
+
+                    count = count_of('mouse', results, labels)
+                    with open('/tmp/mouses.json', 'w') as f:
+                        json.dump({'count' : count}, f)
+
+                    end = time()
+
+                    time_delta = end - start
                     
-                print(f"--------")
+                    print(f"時間：{time_delta}秒")
+                    # バウンディングボックスとラベルを付けた画像を出力する
+                    annotate_objects(image, results, labels, f'{DIR}/byCamera{i}.jpg')
+                    
+                    i += 1
+        except KeyboardInterrupt:
+            print("終了")
 
-                annotate_objects(image, results, labels, f'{DIR}/byCamera{i}.jpg')
+        sleep(2) # 正常終了のために必要
+        camera.stop_preview()
 
 if __name__ == '__main__':
     main()
