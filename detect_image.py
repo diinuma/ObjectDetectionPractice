@@ -7,6 +7,9 @@ import re
 import time
 
 def load_labels(path):
+    """
+    ラベルをリストに読み込む
+    """
     with open(path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
         labels = {}
@@ -32,6 +35,9 @@ def get_output_tensor(interpreter, index):
 
 
 def detect_object(interpreter, image, threshold):
+    """
+    物体検出を行う
+    """
     set_input_tensor(interpreter, image)
     interpreter.invoke()
 
@@ -53,6 +59,9 @@ def detect_object(interpreter, image, threshold):
 
 
 def annotate_objects(image, results, labels, filename='sample.jpg'):
+    """
+    バウンディングボックスとラベルを付けた画像を生成する
+    """
     draw = ImageDraw.Draw(image)
     size = image.size
 
@@ -71,6 +80,10 @@ def annotate_objects(image, results, labels, filename='sample.jpg'):
     
 
 def main():
+    """
+    メイン関数
+    実行時の引数としてモデルファイルのパスを受け取る
+    """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -94,7 +107,7 @@ def main():
 
         results = detect_object(interpreter, resized_image, 0.4)
 
-        annotate_objects(image, results, labels, filename="imagecross.jpeg")
+        annotate_objects(image, results, labels, filename="imagecross.jpg")
 
         print(f"時間: {time.time() - start}秒")
 
