@@ -1,7 +1,6 @@
 from tflite_runtime.interpreter import Interpreter
 from PIL import Image, ImageDraw, ImageFont
 
-import argparse
 import numpy as np
 import re
 import time
@@ -35,66 +34,56 @@ def detect_object(interpreter, image, threshold):
     set_input_tensor(interpreter, image)
     interpreter.invoke()
 
-    boxes = get_output_tensor(interpreter, 0)
-    classes = get_output_tensor(interpreter, 1)
-    scores = get_output_tensor(interpreter, 2)
-    count = int(get_output_tensor(interpreter, 3))
+    output_tensor0 = get_output_tensor(interpreter, 0)
+    output_tensor1 = get_output_tensor(interpreter, 1)
 
+    class_num = 80
     results = []
-    for i in range(count):
-        if scores[i] >= threshold:
+    for i in range(6300):
+        index, max_per = (-1, -1)
+        for j in range(class_num):
+            pred = output_tensor1[i][j]
+            index, max_per = (j, pred) if pred > max_per else (index, max_per)
+
+        if max_per >= threshold:
             result = {
-                'bounding_box': boxes[i],
-                'class_id': classes[i],
-                'score': scores[i]
+                'bounding_box' : output_tensor0[index],
+                'score' : max_per,
+                'class_id' : index
             }
             results.append(result)
+
     return results
 
 
 def annotate_objects(image, results, labels, filename='sample.jpg'):
     draw = ImageDraw.Draw(image)
-    size = image.size
 
     for result in results:
-        ymin, xmin, ymax, xmax = result['bounding_box']
-        
-        xmin = int(xmin * size[0])
-        ymin = int(ymin * size[1])
-        xmax = int(xmax * size[0])
-        ymax = int(ymax * size[1])
-
-        draw.rectangle([xmin, ymin, xmax, ymax])
-        draw.text([xmin, ymin], f"{result['score']}: {labels[result['class_id']]}")
+        box = result['bounding_box']
+        draw.rectangle([box[0], box[1], box[2], box[3]])
+        draw.text([box[0], box[1]], f"{result['score']}: {labels[result['class_id']]}")
 
     image.save(filename)
-    
 
 def main():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument(
-        '--model', help='File path of .tflite file.', required=True
-    )
+    labels = load_labels('model/coco_labels_copy.txt')
 
-    args = parser.parse_args()
-
-    labels = load_labels('model/coco_labels.txt')
-
-    interpreter = Interpreter(args.model)
+    interpreter = Interpreter('model/yolov3-320.tflite')
     interpreter.allocate_tensors()
 
     _, input_width, input_height, _ = interpreter.get_input_details()[0]['shape']
 
     start = time.time()
 
-    with Image.open('交差点.jpg').convert('RGB') as image:
+    with Image.open('image.jpeg').convert('RGB') as image:
         resized_image = image.resize((input_width, input_height), Image.ANTIALIAS)
 
-        results = detect_object(interpreter, resized_image, 0.4)
+        results = detect_object(interpreter, resized_image, 0.5)
 
-        annotate_objects(image, results, labels, filename="imagecross.jpeg")
+        print(results)
+
+        annotate_objects(image, results, labels, filename="imagenew.jpeg")
 
         print(f"時間: {time.time() - start}秒")
 

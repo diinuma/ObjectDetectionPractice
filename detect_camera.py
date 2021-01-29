@@ -40,10 +40,9 @@ def main():
         camera.resolution = (1024, 768)
         camera.start_preview()
 
-        try:
-            i = 0
-            while True:
-            
+        i = 0
+        while True:
+            try:
                 sleep(10)
                 
                 # 画像データの格納場所を用意する
@@ -67,8 +66,8 @@ def main():
                     # 結果を出力する
                     output(results, labels)
 
-                    count = count_of('mouse', results, labels)
-                    with open('/tmp/mouses.json', 'w') as f:
+                    count = count_of('person', results, labels)
+                    with open('/tmp/persons.json', 'w') as f:
                         json.dump({'count' : count}, f)
 
                     end = time()
@@ -80,11 +79,12 @@ def main():
                     annotate_objects(image, results, labels, f'{DIR}/byCamera{i}.jpg')
                     
                     i += 1
-        except KeyboardInterrupt:
-            print("終了")
+            except KeyboardInterrupt:
+                print("終了")
+                break
 
-        sleep(2) # 正常終了のために必要
-        camera.stop_preview()
+
+        sleep(1) # 正常終了のために必要
 
 if __name__ == '__main__':
     main()
