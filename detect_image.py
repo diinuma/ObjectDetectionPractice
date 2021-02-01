@@ -74,7 +74,8 @@ def annotate_objects(image, results, labels, filename='sample.jpg'):
         ymax = int(ymax * size[1])
 
         draw.rectangle([xmin, ymin, xmax, ymax])
-        draw.text([xmin, ymin], f"{result['score']}: {labels[result['class_id']]}")
+        font = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 16)
+        draw.text([xmin, ymin], f"{result['score']}: {labels[result['class_id']]}", fill=(0, 0, 0) , font=font)
 
     image.save(filename)
     
@@ -91,6 +92,10 @@ def main():
         '--model', help='File path of .tflite file.', required=True
     )
 
+    parser.add_argument(
+        '--image', help='File path of image file.', required=True
+    )
+
     args = parser.parse_args()
 
     labels = load_labels('model/coco_labels.txt')
@@ -102,18 +107,18 @@ def main():
 
     start = time.time()
 
-    with Image.open('交差点.jpg').convert('RGB') as image:
+    with Image.open(args.image).convert('RGB') as image:
         resized_image = image.resize((input_width, input_height), Image.ANTIALIAS)
-
         results = detect_object(interpreter, resized_image, 0.4)
 
-        annotate_objects(image, results, labels, filename="imagecross.jpg")
+        splited = re.split('[./]', args.image)
+        output_path = f"output_images/{splited[1]}_output.{splited[2]}"
+        annotate_objects(image, results, labels, filename=output_path)
 
         print(f"時間: {time.time() - start}秒")
 
         for obj in results:
             print(f"{labels[obj['class_id']]}: {obj['score']}")
-            # print(f"{obj['class_id']}: {obj['score']}")
 
 if __name__ == '__main__':
     main()
