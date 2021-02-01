@@ -13,3 +13,6 @@ Pillow = "==8.1.0"
 
 [requires]
 python_version = "3.7"
+
+[scripts]
+detect_image = "python detect_image.py --model model/detect.tflite"
