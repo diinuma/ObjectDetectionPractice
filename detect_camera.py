@@ -43,7 +43,7 @@ def main():
         i = 0
         while True:
             try:
-                sleep(10)
+                sleep(5)
                 
                 # 画像データの格納場所を用意する
                 stream = BytesIO()
@@ -57,6 +57,8 @@ def main():
 
                 # 画像として読み込む
                 with Image.open(stream) as image:
+                    image.save(f'original_images/original{i}.jpg')
+                    
                     _, input_width, input_height, _ = interpreter.get_input_details()[0]['shape'] # 入力サイズを取得する
                     resized_image = image.convert('RGB').resize((input_width, input_height), Image.ANTIALIAS) # 画像を加工する
 
