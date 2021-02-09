@@ -66,6 +66,9 @@ def annotate_objects(image, results, labels, filename='sample.jpg'):
     size = image.size
 
     for result in results:
+        if labels[result['class_id']] != 'person':
+            continue
+        
         ymin, xmin, ymax, xmax = result['bounding_box']
         
         xmin = int(xmin * size[0])
