@@ -1,4 +1,5 @@
-from tflite_runtime.interpreter import Interpreter
+# from tensorflow.lite import Interpreter
+import tensorflow as tf
 from PIL import Image, ImageDraw, ImageFont
 
 import argparse
@@ -66,9 +67,6 @@ def annotate_objects(image, results, labels, filename='sample.jpg'):
     size = image.size
 
     for result in results:
-        if labels[result['class_id']] != 'person':
-            continue
-        
         ymin, xmin, ymax, xmax = result['bounding_box']
         
         xmin = int(xmin * size[0])
@@ -77,8 +75,9 @@ def annotate_objects(image, results, labels, filename='sample.jpg'):
         ymax = int(ymax * size[1])
 
         draw.rectangle([xmin, ymin, xmax, ymax])
-        font = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 16)
-        draw.text([xmin, ymin], f"{result['score']}: {labels[result['class_id']]}", fill=(0, 0, 0) , font=font)
+        # font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf", 16)
+        # draw.text([xmin, ymin], f"{result['score']}: {labels[result['class_id']]}", fill=(0, 0, 0) , font=font)
+        draw.text([xmin, ymin], f"{result['score']}: {labels[result['class_id']]}", fill=(0, 0, 0))
 
     image.save(filename)
     
@@ -103,7 +102,7 @@ def main():
 
     labels = load_labels('model/coco_labels.txt')
 
-    interpreter = Interpreter(args.model)
+    interpreter = tf.lite.Interpreter(args.model)
     interpreter.allocate_tensors()
 
     _, input_width, input_height, _ = interpreter.get_input_details()[0]['shape']
