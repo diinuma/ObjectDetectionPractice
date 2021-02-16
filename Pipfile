@@ -8,6 +8,7 @@ tflite-runtime = {file = "https://github.com/google-coral/pycoral/releases/downl
 numpy = "==1.19.4"
 picamera = "==1.13"
 Pillow = "==8.1.0"
+opencv-python = "*"
 
 [dev-packages]
 
@@ -16,3 +17,15 @@ python_version = "3.7"
 
 [scripts]
 detect_image = "python detect_image.py --model model/detect.tflite"
+autocontrast = "python autocontrast/detect.py --model model/detect.tflite"
+canny = "python canny/detect.py --model model/detect.tflite"
+equalize = "python equalize/detect.py --model model/detect.tflite"
+bright = "python  bright/detect.py --model model/detect.tflite"
+sharpness = "python  sharpness/detect.py --model model/detect.tflite"
+rotation = "python  rotation/detect.py --model model/detect.tflite"
+solarize = "python  solarize/detect.py --model model/detect.tflite"
+color = "python  color/detect.py --model model/detect.tflite"
+posterize = "python  posterize/detect.py --model model/detect.tflite"
+contrast = "python  contrast/detect.py --model model/detect.tflite"
+autocontrast-contrast = "python  autocontrast-contrast/detect.py --model model/detect.tflite"
+grayscale = "python  grayscale/detect.py --model model/detect.tflite"
